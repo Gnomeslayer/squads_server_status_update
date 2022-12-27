@@ -1,5 +1,4 @@
 import json, discord, aiohttp
-from discord import app_commands
 from discord.ext import commands, tasks
 from discord.utils import get
 
@@ -31,31 +30,34 @@ class ServerInfo(commands.Cog):
         map = map.replace("_", " ")
         teamone = response['data']['attributes']['details']['squad_teamOne']
         teamone = teamone.split("_")
-        teamone = teamone[0]
+        if teamone[0] == "FSTemplate":
+            teamone = teamone[1]
+        else:
+            teamone = teamone[0]
+        teamone_players = "None"  
+        
         teamtwo = response['data']['attributes']['details']['squad_teamTwo']
         teamtwo = teamtwo.split("_")
-        teamtwo = teamtwo[0]
-        teamone_players = ''
-        teamtwo_players = ''
+        if teamtwo[0] == "FSTemplate":
+            teamtwo = teamtwo[1]
+        else:
+            teamtwo = teamtwo[0]
+        teamtwo_players = "None"
         for i in response['included']:
             player_name= i['attributes']['name']
             meta = i['meta']['metadata']
             for a in meta:
                 if a['key'] == "teamID":
                     if a['value'] == 1:
-                        if teamone_players:
-                            teamone_players += f"\n{player_name}"
-                        else:
+                        if teamone_players == "None":
                             teamone_players = f"{player_name}"
-                    else:
-                        if teamtwo_players:
-                            teamtwo_players += f"\n{player_name}"
                         else:
+                            teamone_players += f"\n{player_name}"
+                    else:
+                        if teamtwo_players == "None":
                             teamtwo_players = f"{player_name}"
-            if not teamtwo_players:
-                teamtwo_players = "None"
-            if not teamone_players:
-                teamone_players = "None"
+                        else:
+                            teamtwo_players += f"\n{player_name}"
         chosen_color = await self.chosencolor(self.config['color'])
         StatusEmbed = discord.Embed(title="NoD Server Status \nNoD [ENG] #1 | discord.nodsquad.net", color = chosen_color)
         StatusEmbed.add_field(name='Players', value=f"```{players_online} / {max_players}```", inline=True)
